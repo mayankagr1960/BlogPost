@@ -23,56 +23,55 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # CREATE DATABASE
-class Base(DeclarativeBase):
-    pass
+#class Base(DeclarativeBase):
+#    pass
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///postsday69.db")
-db = SQLAlchemy(model_class=Base)
+#db = SQLAlchemy(model_class=Base)
+db = SQLAlchemy()
 db.init_app(app)
 
 
 # CONFIGURE TABLES
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
-    subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
-    date: Mapped[str] = mapped_column(String(250), nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False)
-    author: Mapped[str] = mapped_column(String(250), nullable=False)
-    img_url: Mapped[str] = mapped_column(String(250), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(250), unique=True, nullable=False)
+    subtitle = db.Column(db.String(250), nullable=False)
+    date = db.Column(db.String(250), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String(250), nullable=False)
+    img_url = db.Column(db.String(250), nullable=False)
 
-    # Create Foreign Key, "users.id" the users refers to the tablename of User.
-    author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
-    # Create reference to the User object. The "posts" refers to the posts property in the User class.
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     author = relationship("User", back_populates="posts")
-
-    #***************Parent Relationship*************#
     comments = relationship("Comment", back_populates="parent_post")
+
 
 
 # TODO: Create a User table for all your registered users. 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(String(250), nullable=False)
-    name: Mapped[str] = mapped_column(String(250), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(250), unique=True, nullable=False)
+    password = db.Column(db.String(250), nullable=False)
+    name = db.Column(db.String(250), nullable=False)
 
-    #This will act like a List of BlogPost objects attached to each User. 
-    #The "author" refers to the author property in the BlogPost class.
-    posts = relationship("BlogPost", back_populates="author")
-    comments = relationship("Comment", back_populates="comment_author")
+    # Relationship to BlogPost
+    posts = db.relationship("BlogPost", back_populates="author")
+    # Relationship to Comment
+    comments = db.relationship("Comment", back_populates="comment_author")
 
 class Comment(db.Model):
     __tablename__ = "comments"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    text: Mapped[str] = mapped_column(String(250), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(250), nullable=False)
 
-    author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
-    comment_author = relationship("User", back_populates="comments")
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    comment_author = db.relationship("User", back_populates="comments")
 
-    post_id: Mapped[str] = mapped_column(Integer, db.ForeignKey("blog_posts.id"))
-    parent_post = relationship("BlogPost", back_populates="comments")
+    post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
+    parent_post = db.relationship("BlogPost", back_populates="comments")
+
 
 with app.app_context():
     db.create_all()
